@@ -1,0 +1,68 @@
+import pyproj
+
+def lla2xyz_WGS84(lat,lon,ell_h):
+    ecef = {"proj":'geocent', "ellps":'WGS84', "datum":'WGS84'} # Cartisian
+    lla = "EPSG:4326" # WGS84 Geodetic
+    transproj = pyproj.Transformer.from_crs(lla,ecef,always_xy=True)
+    x,y,z = transproj.transform(lon,lat,ell_h,radians=False)
+    return x,y,z
+def lla2utm_WGS84(lat,lon,ell_h):
+    utm = "EPSG:32647" # WGS84 UTM Zone 47N
+    lla = "EPSG:4326" # WGS84 Geodetic
+    transproj = pyproj.Transformer.from_crs(lla,utm,always_xy=True) # always_xy หมายถึงให้เรียง lon,lat
+    E,N,h = transproj.transform(lon,lat,ell_h,radians=False)
+    return (E,N,h)
+    
+def xyz2lla_INDIAN(x,y,z):
+    #ecef = +proj=geocent +a=6377276.345 +b=6356075.41314024 +towgs84=204.5,837.9,294.8,0,0,0,0 +no_defs
+    ecef = {'proj':'geocent','a':6377276.345,'b':6356075.41314024} # Everest 1830 Cartisian
+    lla = "EPSG:4240" # geodetic INDIAN 1975
+    transproj = pyproj.Transformer.from_crs(ecef,lla,always_xy=True)
+    lat,lon,ell_h = transproj.transform(x,y,z,radians=False)
+    return lat,lon,ell_h  
+def lla2utm_INDIAN(lat,lon,ell_h):
+    lla = "EPSG:4240" # geodetic INDIAN 1975
+    utm = 'EPSG:24047' # INDIAN UTM Zone 47N
+    transproj = pyproj.Transformer.from_crs(lla,utm,always_xy=True)
+    E,N,h = transproj.transform(lon,lat,ell_h,radians=False)
+    return E,N,h
+def xyz2lla_INDIAN(x,y,z):
+    ecef = {'proj':'geocent','a':6377276.345,'b':6356075.41314024} # Everest 1830 Cartisian
+    lla = "EPSG:4240" # geodetic INDIAN 1975
+    transproj = pyproj.Transformer.from_crs(ecef,lla,always_xy=True)
+    lat,lon,ell_h = transproj.transform(x,y,z,radians=False)
+    return lat,lon,ell_h  
+def xyz2utm_INDIAN(x,y,z):
+    ecef = {"proj":'geocent', 'a':6377276.345,'b':6356075.41314024} # Cartisian
+    utm = 'EPSG:24047' # INDIAN UTM Zone 47N
+    transproj = pyproj.Transformer.from_crs(ecef,utm,always_xy=True)
+    E,N,h = transproj.transform(x,y,z)
+    return E,N,h
+def xyzWGS2xyzINDIAN(x,y,z):
+    xn,yn,zn = x-204.5 , y-837.9 , z-294.8
+    return xn,yn,zn
+#Example Command.
+
+# Transform cycle
+lat,lon,h = 13.023433,100.343425,50.0    
+x,y,z = lla2xyz_WGS84(lat,lon,h) 
+print('"Geodetic2Cartesian WGS84"')
+print('X = {:} , Y = {:} , Z = {:} '.format(x,y,z))
+x75,y75,z75 = xyzWGS2xyzINDIAN(x,y,z)
+print('"Cartesian WGS84_2_INDIAN1975"')
+print('X = {:} , Y = {:} , Z = {:} '.format(x75,y75,z75))
+lon75,lat75,h75 = xyz2lla_INDIAN(x75,y75,z75)
+print('"Cart75_2_Geodetic75"')
+print('latitude = {:} , longitude = {:} , h = {:} '.format(lat75,lon75,h75))
+# now we got the Geodetic coordinate in both datum .
+
+# UTM Transform
+print('\n')
+E84,N84,h84 = lla2utm_WGS84(lat,lon,h)
+print('UTM WGS84')
+print('E = {:} , N = {:} , h = {:} '.format(E84,N84,h84))
+E75,N75,h75 = lla2utm_INDIAN(lat75,lon75,h75)
+print('UTM INDIAN1975')
+print('E = {:} , N = {:} , h = {:} '.format(E75,N75,h75))
+
+
